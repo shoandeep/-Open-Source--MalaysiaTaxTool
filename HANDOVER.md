@@ -22,15 +22,25 @@ backend, no network at runtime, strict CSP (no `unsafe-eval`, no remote fonts/sc
 encrypted at rest (AES-GCM-256 / PBKDF2-210k, fail-closed), money always integer sen, escape
 all user text, never move real money.
 
-## Current status (2026-07-02)
+## Current status (2026-07-03)
 
-- Last commit: `b840ab8` — "UX pass" (8 UI changes). **Committed locally, NOT pushed.**
-- Tree is green: `npm run build:check` ok, 161/161 unit, 9/9 Playwright.
-- **Two gates still outstanding for the UX pass:**
-  1. Independent **feature-test** (did not complete last session).
-  2. **Security / audit** pass (never ran) — must verify `jspdf` is eval-free & CSP-clean,
-     PDF text escaping, integer-sen, no new remote/network resources.
-- Do not push until the audit passes.
+- Pushed & live: `9c23084` (50-sen coin brand mark) + `c6b8095` (hero visibility fix)
+  + `c88d117` (dev CSP tightened to localhost-only WebSockets). Tree green:
+  build ok, 161/161 unit, 9/9 Playwright.
+- The b840ab8 UX pass cleared both gates earlier (feature-test 8/8; opus audit
+  APPROVED — jspdf eval-free, exports injection-safe, CSP holds) and is deployed.
+- A hands-on security audit (2026-07-03) found + fixed one Medium (dev meta CSP
+  allowed `ws:`/`wss:` to any origin); npm audit 0 vulns; crypto/WebAuthn/exports
+  verified sound. Watch item: map view must consider Permissions-Policy
+  (geolocation is disabled at the header level in vercel.json).
+- **UI/UX review complete** — ranked top-10 findings delivered. #1 (invisible
+  net-pay hero) fixed in `c6b8095`. **#2–#10 are the open polish backlog**
+  (landing hero on mobile/light; dashboard zero-state; QuickCapture "Save"
+  wording + persist last method; Transactions filters-first; Salary rows cramped;
+  passphrase show/hide; no-undo deletes; ISO dates in rows; cryptic tab glyphs
+  incl. ₪ for Salary). Details in the reviewer transcript / Fable's context.
+- Trap to remember: `.silk-panel` is un-layered CSS whose `background:` shorthand
+  overrides ANY Tailwind `bg-*` utility on the same element.
 
 ## Done this session (the 8 UX changes in `b840ab8`)
 
@@ -56,17 +66,20 @@ Transactions view. Branded HTML + PDF export.
 
 ## Roadmap (intended order)
 
-1. **Finish the two outstanding gates** (feature-test + security audit) for `b840ab8`, then push.
-2. **Refinement / UI-UX polish FIRST** (top priority): make the **50-sen coin logo realistic**
-   (must be a **self-hosted inline SVG** — remote images are CSP-forbidden), improve
-   user-friendliness and visual consistency, keep everything clean and publish-ready.
-3. **Core-tracking completeness for publishing:** salary→budget detail; ALL savings vehicles
-   (bank savings, e-wallet FD promos, bank FD promos, stocks/investing, other MY instruments);
-   ALL payment channels (cash/debit/e-wallet/credit/BNPL).
+1. ~~Gates for `b840ab8`~~ ✅ done (8/8 feature-test, audit APPROVED, deployed).
+2. ~~Realistic 50-sen coin logo~~ ✅ shipped in `9c23084` (`src/ui/CoinLogo.tsx`, pure inline
+   SVG + regenerated PWA icons). **Remaining polish: UX findings #2–#10** (see status above) —
+   each fixed or justified won't-fix here.
+3. **Core-tracking completeness for publishing** — design settled (build as pure logic +
+   tests first): `CashAccount` + `startDate/termMonths/maturityDate` for bank FDs (simple
+   interest to maturity, integer-sen half-up); e-wallet FD promos via existing
+   `promoRatePercent/promoEnds`; `Investment.type` (stocks/unitTrust/ASNB/TabungHaji/robo/
+   crypto/EPF/other) + `ratePercent` projection; `Expense.methodAccountId` linking payments
+   to specific wallets/cards with last-used-per-method defaults.
 4. **Then** the monthly **purchase map view** (spend by location). ⚠️ Open design decision:
    map tiles are remote by default and collide with the strict CSP / no-network rule — resolve
    first (bundled/offline tiles vs. manual location tagging vs. a documented CSP exception)
-   before building.
+   before building; also revisit Permissions-Policy (geolocation currently disabled).
 
 ## Key files (see `CLAUDE.md` for the full map)
 
