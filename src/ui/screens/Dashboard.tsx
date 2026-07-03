@@ -41,7 +41,8 @@ export function Dashboard({
         </Card>
       )}
 
-      <section className="silk-panel kain-edge break-inside-avoid rounded-2xl bg-primary p-4 lg:mb-4">
+      {/* No silk-panel here: its un-layered background shorthand would override bg-primary. */}
+      <section className="kain-edge break-inside-avoid rounded-2xl bg-primary p-4 shadow-lg ring-1 ring-gold/30 lg:mb-4">
         <div className="flex items-end justify-between">
           <div className="min-w-0">
             <p className="text-[0.7rem] font-medium uppercase tracking-[0.08em] text-primary-contrast/60">
