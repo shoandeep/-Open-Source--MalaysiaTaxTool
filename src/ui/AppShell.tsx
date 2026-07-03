@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useVault } from '../state/VaultContext';
 import { ThemeToggle } from './ThemeToggle';
+import { CoinLogo } from './CoinLogo';
 import { Settings } from './Settings';
 import { QuickCapture } from './QuickCapture';
 import { Dashboard } from './screens/Dashboard';
@@ -109,9 +110,7 @@ export function AppShell() {
       {/* Desktop sidebar */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-60 lg:flex-col lg:border-r lg:border-line lg:bg-surface/70 lg:px-3 lg:py-5 lg:backdrop-blur-xl">
         <div className="flex items-center gap-2.5 px-2">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary font-display text-sm font-bold text-primary-contrast shadow-[0_0_0_1px_hsl(var(--gold)/0.4)]">
-            FG
-          </span>
+          <CoinLogo size={36} detail="mark" />
           <span className="font-display text-[1.05rem] font-semibold tracking-tight text-ink">
             Finance Guru
           </span>
@@ -186,9 +185,7 @@ export function AppShell() {
         <header className="sticky top-0 z-10 border-b border-line bg-bg/80 backdrop-blur-xl lg:hidden">
           <div className="mx-auto flex max-w-lg items-center justify-between px-4 py-3">
             <h1 className="flex items-center gap-2 font-display text-[1.05rem] font-semibold tracking-tight">
-              <span className="grid h-7 w-7 place-items-center rounded-lg bg-primary text-[0.7rem] font-bold text-primary-contrast">
-                FG
-              </span>
+              <CoinLogo size={28} detail="mark" />
               Finance Guru
             </h1>
             <div className="flex items-center gap-1">

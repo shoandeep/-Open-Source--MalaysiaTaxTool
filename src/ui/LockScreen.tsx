@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { useVault } from '../state/VaultContext';
+import { CoinLogo } from './CoinLogo';
 
 /**
  * Passphrase gate shown whenever the vault is locked. Doubles as first-run setup
@@ -73,6 +74,9 @@ export function LockScreen() {
         >
           ← Back
         </button>
+        <div className="mb-4 flex justify-center">
+          <CoinLogo size={64} detail="full" />
+        </div>
         <h1 id="lock-title" className="font-display text-2xl font-semibold tracking-tight">
           {creating ? 'Create your passphrase' : 'Unlock Finance Guru'}
         </h1>
