@@ -4,16 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <!--
-      Content-Security-Policy (dev-compatible baseline).
-      Phase 6 will tighten this for the production build:
-        - remove 'unsafe-inline' from style-src (Vite injects styles inline only in dev),
-        - drop ws:/wss: from connect-src (HMR only),
-        - keep script-src 'self' with no 'unsafe-eval'.
-      Invariant kept here: NO external origins, NO remote data egress, object/base/frame locked.
+      Content-Security-Policy. connect-src allows WebSockets to localhost ONLY
+      (Vite HMR in dev); no other origin can ever be contacted, so even a
+      hypothetical XSS has no exfiltration channel. 'unsafe-inline' in style-src
+      is required by Vite's dev style injection; the production Vercel header
+      (vercel.json) is the authoritative, stricter policy and browsers enforce
+      the INTERSECTION of both. Invariant: NO external origins, NO remote data
+      egress, object/base/frame locked.
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'none'"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ws://localhost:* wss://localhost:*; object-src 'none'; base-uri 'self'; frame-src 'none'; frame-ancestors 'none'; form-action 'none'"
     />
     <meta name="color-scheme" content="light dark" />
 
