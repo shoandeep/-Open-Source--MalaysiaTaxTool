@@ -16,7 +16,7 @@ Local-first, **client-side-only** personal finance PWA for Malaysia. Single user
 - `npm run build:check` — terse build (only `build ok` or errors). **Use this**, not `npm run build` (that one dumps the font-asset table every time).
 - `npm test` — vitest (unit). `npm run test:e2e` — Playwright.
 - Build warnings go to stderr; PowerShell flags that as failure even on success. Prefer `build:check`, or check `$LASTEXITCODE`.
-- Deploy = push to `main` (Vercel auto-deploy). Verify via live bundle hash → HTTP 200.
+- Deploy = push to `main` (Vercel auto-deploy). Live URL: https://finance-management-one-drab.vercel.app — verify via live bundle hash → HTTP 200.
 
 ## Layout
 
