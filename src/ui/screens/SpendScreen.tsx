@@ -11,6 +11,7 @@ import { Card, Money, MoneyInput, TextInput, Select, Button, Stat, ProgressBar, 
 import { CategoryDonut, DailyBars } from '../charts';
 import { Transactions } from '../Transactions';
 import { TransferLog } from '../TransferLog';
+import { useUndo } from '../undo';
 
 const DEBT_KINDS: { id: DebtKind; label: string }[] = [
   { id: 'credit', label: 'Credit card' },
@@ -66,6 +67,7 @@ function PeriodSlider({
 
 export function SpendScreen() {
   const { data, update } = useVault();
+  const stageUndo = useUndo();
   const today = todayISO();
   const [period, setPeriod] = useState<SpendPeriod>('day');
   const [amount, setAmount] = useState<Sen>(0);
@@ -304,12 +306,22 @@ export function SpendScreen() {
                         variant="danger"
                         className="px-2"
                         aria-label={`Remove ${debt.name || 'debt'}`}
-                        onClick={() =>
+                        onClick={() => {
+                          const removedDebt = debt;
+                          const removedRepayments = (data.transfers ?? []).filter(
+                            (x) => x.kind === 'debt' && x.targetId === debt.id,
+                          );
                           update((d) => {
                             d.debts = d.debts.filter((x) => x.id !== debt.id);
                             d.transfers = d.transfers.filter((x) => !(x.kind === 'debt' && x.targetId === debt.id));
-                          })
-                        }
+                          });
+                          stageUndo(removedDebt.name || 'Card / BNPL', () =>
+                            update((d) => {
+                              d.debts.push(removedDebt);
+                              d.transfers.push(...removedRepayments);
+                            }),
+                          );
+                        }}
                       >
                         ✕
                       </Button>
@@ -442,7 +454,11 @@ export function SpendScreen() {
                     variant="danger"
                     className="px-2"
                     aria-label="Remove expense"
-                    onClick={() => update((d) => void (d.expenses = d.expenses.filter((x) => x.id !== e.id)))}
+                    onClick={() => {
+                      const removed = e;
+                      update((d) => void (d.expenses = d.expenses.filter((x) => x.id !== e.id)));
+                      stageUndo('Expense', () => update((d) => void d.expenses.push(removed)));
+                    }}
                   >
                     ✕
                   </Button>
@@ -501,9 +517,13 @@ export function SpendScreen() {
                 variant="danger"
                 className="px-2"
                 aria-label={`Remove ${c.name}`}
-                onClick={() =>
-                  update((d) => void (d.variableCategories = d.variableCategories.filter((x) => x.id !== c.id)))
-                }
+                onClick={() => {
+                  const removed = c;
+                  update((d) => void (d.variableCategories = d.variableCategories.filter((x) => x.id !== c.id)));
+                  stageUndo(removed.name || 'Category', () =>
+                    update((d) => void d.variableCategories.push(removed)),
+                  );
+                }}
               >
                 ✕
               </Button>

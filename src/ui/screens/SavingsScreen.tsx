@@ -7,6 +7,7 @@ import { cashSummary } from '../../budget/cash';
 import type { CashAccountType } from '../../model/types';
 import { Card, Money, MoneyInput, TextInput, Select, Button, ProgressBar, Stat, Disclaimer, Toggle } from '../components';
 import { TransferLog } from '../TransferLog';
+import { useUndo } from '../undo';
 
 const ACCOUNT_TYPES: { id: CashAccountType; label: string }[] = [
   { id: 'bank', label: 'Bank' },
@@ -53,6 +54,7 @@ function RatePct({
 /** Advanced view: where idle (non-investment) cash rests + its potential earnings. */
 function CashSavings({ today }: { today: string }) {
   const { data, update } = useVault();
+  const stageUndo = useUndo();
   if (!data) return null;
   const sum = cashSummary(data.cashAccounts, today);
   const fmtDate = (iso: string) =>
@@ -126,12 +128,22 @@ function CashSavings({ today }: { today: string }) {
                       variant="danger"
                       className="px-2"
                       aria-label={`Remove ${acc.name || 'account'}`}
-                      onClick={() =>
+                      onClick={() => {
+                        const removedAcc = acc;
+                        const removedTransfers = (data.transfers ?? []).filter(
+                          (x) => x.kind === 'cash' && x.targetId === acc.id,
+                        );
                         update((d) => {
                           d.cashAccounts = d.cashAccounts.filter((x) => x.id !== acc.id);
                           d.transfers = d.transfers.filter((x) => !(x.kind === 'cash' && x.targetId === acc.id));
-                        })
-                      }
+                        });
+                        stageUndo(removedAcc.name || 'Account', () =>
+                          update((d) => {
+                            d.cashAccounts.push(removedAcc);
+                            d.transfers.push(...removedTransfers);
+                          }),
+                        );
+                      }}
                     >
                       ✕
                     </Button>
@@ -211,6 +223,7 @@ function CashSavings({ today }: { today: string }) {
 
 export function SavingsScreen() {
   const { data, update } = useVault();
+  const stageUndo = useUndo();
   if (!data) return null;
   const today = todayISO();
   const f = deriveFinances(data, today);
@@ -324,9 +337,11 @@ export function SavingsScreen() {
                       variant="danger"
                       className="px-2"
                       aria-label={`Remove ${g.name || 'goal'}`}
-                      onClick={() =>
-                        update((d) => void (d.goals = d.goals.filter((x) => x.id !== g.id)))
-                      }
+                      onClick={() => {
+                        const removed = g;
+                        update((d) => void (d.goals = d.goals.filter((x) => x.id !== g.id)));
+                        stageUndo(removed.name || 'Goal', () => update((d) => void d.goals.push(removed)));
+                      }}
                     >
                       ✕
                     </Button>
@@ -441,12 +456,22 @@ export function SavingsScreen() {
                     variant="danger"
                     className="px-2"
                     aria-label={`Remove ${inv.name || 'investment'}`}
-                    onClick={() =>
+                    onClick={() => {
+                      const removedInv = inv;
+                      const removedTransfers = (data.transfers ?? []).filter(
+                        (x) => x.kind === 'investment' && x.targetId === inv.id,
+                      );
                       update((d) => {
                         d.investments = d.investments.filter((x) => x.id !== inv.id);
                         d.transfers = d.transfers.filter((x) => !(x.kind === 'investment' && x.targetId === inv.id));
-                      })
-                    }
+                      });
+                      stageUndo(removedInv.name || 'Investment', () =>
+                        update((d) => {
+                          d.investments.push(removedInv);
+                          d.transfers.push(...removedTransfers);
+                        }),
+                      );
+                    }}
                   >
                     ✕
                   </Button>

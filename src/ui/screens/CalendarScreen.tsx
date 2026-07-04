@@ -27,6 +27,7 @@ import { newId } from '../../model/defaults';
 import { formatSen, type Sen } from '../../money/money';
 import type { EventType, EventFreq, RecurringEvent } from '../../model/types';
 import { Card, Money, MoneyInput, TextInput, Select, Button, Stat } from '../components';
+import { useUndo } from '../undo';
 
 const EVENT_META: Record<EventType, { label: string; color: string }> = {
   income: { label: 'Income', color: '#1f9e88' },
@@ -123,6 +124,7 @@ function DayField({ label, value, onChange }: { label: string; value: number | u
 
 export function CalendarScreen() {
   const { data, update } = useVault();
+  const stageUndo = useUndo();
   const [view, setView] = useState<'month' | 'week'>('month');
   const [focus, setFocus] = useState(todayISO());
   const [selectedISO, setSelectedISO] = useState(todayISO());
@@ -581,7 +583,13 @@ export function CalendarScreen() {
                       variant="danger"
                       className="px-2"
                       aria-label={`Remove ${ev.name || 'event'}`}
-                      onClick={() => update((d) => void (d.recurringEvents = d.recurringEvents.filter((x) => x.id !== ev.id)))}
+                      onClick={() => {
+                        const removed = ev;
+                        update((d) => void (d.recurringEvents = d.recurringEvents.filter((x) => x.id !== ev.id)));
+                        stageUndo(removed.name || 'Event', () =>
+                          update((d) => void d.recurringEvents.push(removed)),
+                        );
+                      }}
                     >
                       ✕
                     </Button>

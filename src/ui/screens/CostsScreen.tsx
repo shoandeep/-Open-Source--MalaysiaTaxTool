@@ -5,6 +5,7 @@ import { newId } from '../../model/defaults';
 import { formatSen } from '../../money/money';
 import type { AllocationBase } from '../../model/types';
 import { Card, Money, MoneyInput, TextInput, Button, Disclaimer } from '../components';
+import { useUndo } from '../undo';
 
 function AllocPctInput({
   label,
@@ -59,6 +60,7 @@ function AllocPctInput({
 
 export function CostsScreen() {
   const { data, update } = useVault();
+  const stageUndo = useUndo();
   if (!data) return null;
   const f = deriveFinances(data, todayISO());
   const a = data.allocation;
@@ -105,9 +107,13 @@ export function CostsScreen() {
                       variant="danger"
                       className="px-2"
                       aria-label={`Remove ${c.name || 'cost'}`}
-                      onClick={() =>
-                        update((d) => void (d.fixedCosts = d.fixedCosts.filter((x) => x.id !== c.id)))
-                      }
+                      onClick={() => {
+                        const removed = c;
+                        update((d) => void (d.fixedCosts = d.fixedCosts.filter((x) => x.id !== c.id)));
+                        stageUndo(removed.name || 'Fixed cost', () =>
+                          update((d) => void d.fixedCosts.push(removed)),
+                        );
+                      }}
                     >
                       ✕
                     </Button>

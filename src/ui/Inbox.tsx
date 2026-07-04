@@ -2,6 +2,7 @@ import { useVault } from '../state/VaultContext';
 import { unsortedExpenses } from '../budget/capture';
 import { formatSen } from '../money/money';
 import { Card, Button } from './components';
+import { useUndo } from './undo';
 
 const shortDate = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' });
@@ -13,6 +14,7 @@ const shortDate = (iso: string) =>
  */
 export function Inbox() {
   const { data, update } = useVault();
+  const stageUndo = useUndo();
   if (!data) return null;
   const items = unsortedExpenses(data.expenses);
   if (items.length === 0) return null;
@@ -23,8 +25,11 @@ export function Inbox() {
       const it = d.expenses.find((x) => x.id === id);
       if (it) it.categoryId = categoryId;
     });
-  const remove = (id: string) =>
+  const remove = (id: string) => {
+    const removed = data.expenses.find((x) => x.id === id);
     update((d) => void (d.expenses = d.expenses.filter((x) => x.id !== id)));
+    if (removed) stageUndo('Capture', () => update((d) => void d.expenses.push(removed)));
+  };
 
   return (
     <Card title={`Inbox · to file (${items.length})`} className="break-inside-avoid border-gold/30 lg:mb-4">

@@ -4,6 +4,7 @@ import { transfersFor, applyTransferEffect } from '../budget/transfers';
 import { formatSen } from '../money/money';
 import type { TransferKind } from '../model/types';
 import { MoneyInput, TextInput, Button } from './components';
+import { useUndo } from './undo';
 
 const shortDate = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -16,6 +17,7 @@ const shortDate = (iso: string) =>
  */
 export function TransferLog({ kind, targetId }: { kind: TransferKind; targetId: string }) {
   const { data, update } = useVault();
+  const stageUndo = useUndo();
   const [openId, setOpenId] = useState<string | null>(null);
   if (!data) return null;
   const items = transfersFor(data.transfers, kind, targetId);
@@ -36,13 +38,24 @@ export function TransferLog({ kind, targetId }: { kind: TransferKind; targetId: 
       t.amountSen = sen;
       applyTransferEffect(d, t, 1);
     });
-  const remove = (id: string) =>
+  const remove = (id: string) => {
+    const removed = data.transfers.find((x) => x.id === id);
     update((d) => {
       const t = d.transfers.find((x) => x.id === id);
       if (!t) return;
       applyTransferEffect(d, t, -1);
       d.transfers = d.transfers.filter((x) => x.id !== id);
     });
+    if (removed) {
+      // Undo restores the entry AND re-applies its balance effect.
+      stageUndo(isDebt ? 'Repayment' : 'Transfer', () =>
+        update((d) => {
+          d.transfers.push(removed);
+          applyTransferEffect(d, removed, 1);
+        }),
+      );
+    }
+  };
 
   return (
     <div className="mt-3 border-t border-line pt-2">

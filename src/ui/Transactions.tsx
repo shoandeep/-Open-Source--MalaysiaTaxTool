@@ -28,6 +28,8 @@ export function Transactions({ onClose }: { onClose: () => void }) {
   const [toISO, setToISO] = useState('');
   const [minRM, setMinRM] = useState('');
   const [maxRM, setMaxRM] = useState('');
+  // Advanced filters live behind a disclosure — the list comes first on a phone.
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -62,8 +64,9 @@ export function Transactions({ onClose }: { onClose: () => void }) {
   };
   const list = filterTransactions(all, filters);
   const t = totals(list);
-  const anyFilter =
-    direction !== 'all' || typeKey !== 'all' || fromISO || toISO || minRM || maxRM;
+  const advancedCount =
+    (typeKey !== 'all' ? 1 : 0) + (fromISO ? 1 : 0) + (toISO ? 1 : 0) + (minRM ? 1 : 0) + (maxRM ? 1 : 0);
+  const anyFilter = direction !== 'all' || advancedCount > 0;
   const clear = () => {
     setDirection('all');
     setTypeKey('all');
@@ -92,22 +95,37 @@ export function Transactions({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        {/* Filters */}
+        {/* Filters: direction is always one tap away; everything else is a disclosure. */}
         <div className="space-y-2">
-          <div className="grid grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1 ring-1 ring-inset ring-line">
-            {(['all', 'in', 'out'] as const).map((d) => (
-              <button
-                key={d}
-                onClick={() => setDirection(d)}
-                aria-pressed={direction === d}
-                className={`rounded-lg py-1.5 text-xs font-semibold capitalize transition ${
-                  direction === d ? 'bg-primary text-primary-contrast' : 'text-ink-faint hover:text-ink'
-                }`}
-              >
-                {d === 'all' ? 'All' : d === 'in' ? 'Money in' : 'Money out'}
-              </button>
-            ))}
+          <div className="flex items-center gap-2">
+            <div className="grid flex-1 grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1 ring-1 ring-inset ring-line">
+              {(['all', 'in', 'out'] as const).map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setDirection(d)}
+                  aria-pressed={direction === d}
+                  className={`rounded-lg py-1.5 text-xs font-semibold capitalize transition ${
+                    direction === d ? 'bg-primary text-primary-contrast' : 'text-ink-faint hover:text-ink'
+                  }`}
+                >
+                  {d === 'all' ? 'All' : d === 'in' ? 'Money in' : 'Money out'}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setFiltersOpen((o) => !o)}
+              aria-expanded={filtersOpen}
+              className={`shrink-0 rounded-xl px-3 py-2 text-xs font-semibold ring-1 ring-inset transition ${
+                filtersOpen || advancedCount > 0
+                  ? 'bg-gold/15 text-gold ring-gold/40'
+                  : 'bg-surface-2 text-ink-faint ring-line hover:text-ink'
+              }`}
+            >
+              Filters{advancedCount > 0 ? ` · ${advancedCount}` : ''}
+            </button>
           </div>
+          {filtersOpen && (
+          <>
           <label className="block text-[11px] text-ink-faint">
             Type
             <Select className="mt-1" aria-label="Type" value={typeKey} onChange={(e) => setTypeKey(e.target.value)}>
@@ -155,6 +173,8 @@ export function Transactions({ onClose }: { onClose: () => void }) {
               />
             </label>
           </div>
+          </>
+          )}
         </div>
 
         {/* Totals */}
@@ -185,7 +205,9 @@ export function Transactions({ onClose }: { onClose: () => void }) {
                   <div className="min-w-0">
                     <p className="truncate text-sm text-ink">{tx.title}</p>
                     <p className="truncate text-[11px] text-ink-faint">
-                      {tx.typeLabel} · {longDate(tx.dateISO)}
+                      {/* Don't repeat the title as its own subtitle. */}
+                      {tx.typeLabel !== tx.title ? `${tx.typeLabel} · ` : ''}
+                      {longDate(tx.dateISO)}
                     </p>
                   </div>
                   <span className={`shrink-0 tabular-nums text-sm font-semibold ${inn ? 'text-positive' : 'text-negative'}`}>
