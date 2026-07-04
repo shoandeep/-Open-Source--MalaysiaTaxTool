@@ -14,16 +14,17 @@ import { parsePaymentText } from '../budget/payparse';
 import { pendingMaterializations } from '../budget/autolog';
 import { todayISO, addDaysISO } from '../budget/dates';
 import { newId } from '../model/defaults';
+import { HomeIcon, SalaryIcon, BudgetIcon, SaveIcon, ExpensesIcon, CalendarIcon } from './icons';
 
 type TabId = 'home' | 'pay' | 'costs' | 'save' | 'spend' | 'calendar';
 
-const TABS: { id: TabId; label: string; icon: string }[] = [
-  { id: 'home', label: 'Home', icon: '◎' },
-  { id: 'pay', label: 'Salary', icon: '₪' },
-  { id: 'costs', label: 'Budget', icon: '▤' },
-  { id: 'save', label: 'Save', icon: '◆' },
-  { id: 'spend', label: 'Expenses', icon: '◷' },
-  { id: 'calendar', label: 'Calendar', icon: '▦' },
+const TABS: { id: TabId; label: string; icon: ReactNode }[] = [
+  { id: 'home', label: 'Home', icon: <HomeIcon /> },
+  { id: 'pay', label: 'Salary', icon: <SalaryIcon /> },
+  { id: 'costs', label: 'Budget', icon: <BudgetIcon /> },
+  { id: 'save', label: 'Save', icon: <SaveIcon /> },
+  { id: 'spend', label: 'Expenses', icon: <ExpensesIcon /> },
+  { id: 'calendar', label: 'Calendar', icon: <CalendarIcon /> },
 ];
 
 function GearIcon() {

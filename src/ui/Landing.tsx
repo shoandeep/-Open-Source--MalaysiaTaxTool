@@ -3,6 +3,7 @@ import { useVault } from '../state/VaultContext';
 import { useTheme } from './theme';
 import { ThemeToggle } from './ThemeToggle';
 import { CoinLogo } from './CoinLogo';
+import { SalaryIcon, BudgetIcon, GoalIcon, TrendIcon } from './icons';
 
 const Hero3D = lazy(() => import('./Hero3D'));
 
@@ -14,22 +15,22 @@ function HeroFallback() {
 
 const FEATURES = [
   {
-    icon: '₪',
+    icon: <SalaryIcon size={22} />,
     title: 'Real Malaysian net pay',
     body: 'Gross → net after EPF, SOCSO, EIS and PCB, using the official statutory tables. Override any line from your payslip.',
   },
   {
-    icon: '◑',
+    icon: <BudgetIcon size={22} />,
     title: 'Smart budgeting',
     body: 'Split what’s left into savings, investments and spending with your own percentages — no rigid rules.',
   },
   {
-    icon: '◆',
+    icon: <GoalIcon size={22} />,
     title: 'Emergency fund & goals',
     body: 'Track months of cover, set goals with deadlines, and see the monthly contribution to hit them.',
   },
   {
-    icon: '◷',
+    icon: <TrendIcon size={22} />,
     title: 'Dynamic daily budget',
     body: 'A live “spend today” number that recomputes every time you log an expense and as the month runs down.',
   },
@@ -56,7 +57,8 @@ export function Landing() {
             <span className="animate-dot h-1.5 w-1.5 rounded-full bg-positive" />
             100% private · runs in your browser
           </span>
-          <h1 className="animate-weave-in mt-4 font-display text-[2.6rem] font-semibold leading-[1.05] tracking-tight sm:text-[3.25rem]">
+          {/* No entrance animation on the H1: a blurred/late headline reads as broken. */}
+          <h1 className="mt-4 font-display text-[2.6rem] font-semibold leading-[1.05] tracking-tight sm:text-[3.25rem]">
             Know exactly what your{' '}
             <span className="text-gold-gradient italic">salary becomes</span>.
           </h1>
@@ -69,10 +71,8 @@ export function Landing() {
             spending allowance.
           </p>
 
-          <div
-            className="animate-fade-up mt-7 flex flex-wrap items-center gap-3"
-            style={{ animationDelay: '220ms' }}
-          >
+          {/* The primary CTA is never animation-delayed — it must be tappable immediately. */}
+          <div className="mt-7 flex flex-wrap items-center gap-3">
             <button
               onClick={startGuest}
               className="animate-pulse-ring rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-contrast transition hover:-translate-y-0.5 hover:brightness-110"
@@ -86,15 +86,17 @@ export function Landing() {
               {initialized ? 'Unlock my saved data' : 'Save on this device'}
             </button>
           </div>
-          <p
-            className="animate-fade-up mt-3 text-xs text-ink-faint"
-            style={{ animationDelay: '320ms' }}
-          >
+          <p className="mt-3 text-xs text-ink-faint">
             “Try it now” saves nothing — close the tab and it’s gone.
           </p>
         </div>
 
-        <div className="animate-fade-up relative h-72 sm:h-80 md:h-96" style={{ animationDelay: '160ms' }}>
+        {/* Mobile: static coin (instant, crisp in both themes). The three.js scene only
+            loads at md+ — it read as a blank gap in light mode and delayed first paint. */}
+        <div className="animate-fade-up flex justify-center md:hidden" style={{ animationDelay: '120ms' }}>
+          <CoinLogo size={168} detail="full" />
+        </div>
+        <div className="animate-fade-up relative hidden md:block md:h-96" style={{ animationDelay: '160ms' }}>
           <Suspense fallback={<HeroFallback />}>
             <Hero3D dark={resolved === 'dark'} />
           </Suspense>
