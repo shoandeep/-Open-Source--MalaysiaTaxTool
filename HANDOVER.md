@@ -33,12 +33,13 @@ all user text, never move real money.
   allowed `ws:`/`wss:` to any origin); npm audit 0 vulns; crypto/WebAuthn/exports
   verified sound. Watch item: map view must consider Permissions-Policy
   (geolocation is disabled at the header level in vercel.json).
-- **UI/UX review complete** — ranked top-10 findings delivered. #1 (invisible
-  net-pay hero) fixed in `c6b8095`. **#2–#10 are the open polish backlog**
-  (landing hero on mobile/light; dashboard zero-state; QuickCapture "Save"
-  wording + persist last method; Transactions filters-first; Salary rows cramped;
-  passphrase show/hide; no-undo deletes; ISO dates in rows; cryptic tab glyphs
-  incl. ₪ for Salary). Details in the reviewer transcript / Fable's context.
+- **UI/UX review: ALL top-10 findings fixed** (2026-07-05). #1 hero `c6b8095`;
+  #3/#4/#6/#7/#9 in "Polish wave 1"; #2/#10 in wave 2 (new `src/ui/icons.tsx`,
+  instant landing hero, static coin below md); #5/#8 in wave 3 (Transactions
+  list-first with a Filters disclosure; global 5-second undo snackbar
+  `src/ui/undo.tsx` wired to every delete, incl. balance re-apply for transfer
+  entries). P3 honourable mentions (CostsScreen phrasing, empty-calendar
+  guidance, desktop dead space, FAB overlap) remain open — minor.
 - Trap to remember: `.silk-panel` is un-layered CSS whose `background:` shorthand
   overrides ANY Tailwind `bg-*` utility on the same element.
 
