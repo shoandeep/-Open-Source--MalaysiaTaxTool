@@ -16,7 +16,7 @@ test('transactions view filters expenses (out) + transfers (in) @390', async ({ 
   const dlg = page.getByRole('dialog', { name: 'Quick add' });
   await dlg.getByRole('button', { name: 'Save', exact: true }).first().click();
   for (const k of ['5', '0', '0', '0', '0']) await dlg.getByRole('button', { name: k, exact: true }).click();
-  await dlg.getByRole('button', { name: 'Save', exact: true }).last().click();
+  await dlg.getByRole('button', { name: 'Log', exact: true }).click();
 
   // An expense (money out): Spend → log RM50.
   await nav.getByRole('button', { name: 'Expenses', exact: true }).click();

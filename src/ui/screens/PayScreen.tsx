@@ -149,10 +149,19 @@ function OverrideRow({
   const id = useId();
 
   return (
-    <div className="grid grid-cols-[1fr_auto] items-center gap-3 py-2">
-      <div>
+    // Stacked below `sm` (labels wrapped awkwardly beside a fixed-width input at 360-390px);
+    // the AUTO/OVERRIDE state is an inline badge after the label instead of a reserved column.
+    <div className="grid gap-1.5 py-2 sm:grid-cols-[1fr_auto] sm:items-center sm:gap-3">
+      <div className="min-w-0">
         <label htmlFor={id} className="text-sm font-medium text-ink-soft">
           {label}
+          <span
+            className={`ml-2 align-middle text-[9px] font-semibold uppercase tracking-wide ${
+              line.overridden ? 'rounded-full bg-gold/15 px-1.5 py-0.5 text-gold' : 'text-ink-faint'
+            }`}
+          >
+            {line.overridden ? 'Override' : 'Auto'}
+          </span>
         </label>
         <p className="text-xs text-ink-faint">
           Estimate {formatSen(line.estimateSen)}
@@ -171,25 +180,16 @@ function OverrideRow({
           )}
         </p>
       </div>
-      <div className="flex items-center gap-2">
-        <div className="w-32">
-          <MoneyInput
-            id={id}
-            valueSen={line.amountSen}
-            onChangeSen={(sen) =>
-              update((d) => {
-                d.pay.overrides[field] = sen;
-              })
-            }
-          />
-        </div>
-        <span
-          className={`w-16 shrink-0 text-center text-[10px] font-semibold uppercase tracking-wide ${
-            line.overridden ? 'text-gold' : 'text-ink-faint'
-          }`}
-        >
-          {line.overridden ? 'Override' : 'Auto'}
-        </span>
+      <div className="w-36 sm:w-32">
+        <MoneyInput
+          id={id}
+          valueSen={line.amountSen}
+          onChangeSen={(sen) =>
+            update((d) => {
+              d.pay.overrides[field] = sen;
+            })
+          }
+        />
       </div>
     </div>
   );

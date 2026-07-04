@@ -26,7 +26,7 @@ test('debt tracker: add a card, repay via + draws it down @390', async ({ page }
   await expect(dlg.getByRole('button', { name: 'Maybank Visa' })).toHaveAttribute('aria-pressed', 'true');
   for (const k of ['2', '0', '0', '0', '0']) await dlg.getByRole('button', { name: k, exact: true }).click();
   await expect(dlg.getByText('RM200.00')).toBeVisible();
-  await dlg.getByRole('button', { name: 'Save', exact: true }).last().click();
+  await dlg.getByRole('button', { name: 'Log', exact: true }).click();
 
   // Balance drew down to RM800 + a repayment is logged.
   await expect(debtCard.getByText('RM800.00').first()).toBeVisible();

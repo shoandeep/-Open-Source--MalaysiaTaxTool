@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { useVault } from '../state/VaultContext';
 import { CoinLogo } from './CoinLogo';
+import { PassphraseInput } from './components';
 
 /**
  * Passphrase gate shown whenever the vault is locked. Doubles as first-run setup
@@ -56,9 +57,7 @@ export function LockScreen() {
   }
 
   const shownError = localError ?? error;
-
-  const inputCls =
-    'mt-1 w-full rounded-lg border border-line-strong bg-surface-2 px-3 py-2 text-sm text-ink outline-none transition focus:border-gold focus:ring-2 focus:ring-ring/30';
+  const longEnough = passphrase.length >= 10;
 
   return (
     <main className="weave-bg flex min-h-dvh items-center justify-center p-6 text-ink">
@@ -113,35 +112,46 @@ export function LockScreen() {
         )}
 
         <div className={creating || !biometricEnabled ? 'mt-5' : ''}>
-          <label htmlFor={pwId} className="block text-sm font-medium text-ink-soft">
+          <label htmlFor={pwId} className="mb-1 block text-sm font-medium text-ink-soft">
             Passphrase
           </label>
-          <input
+          <PassphraseInput
             id={pwId}
-            type="password"
             autoComplete={creating ? 'new-password' : 'current-password'}
             autoFocus={creating || !biometricEnabled}
             value={passphrase}
             onChange={(e) => setPassphrase(e.target.value)}
-            className={inputCls}
             required
           />
+          {creating && (
+            <p className={`mt-1 text-xs ${longEnough ? 'text-positive' : 'text-ink-faint'}`} aria-live="polite">
+              {longEnough
+                ? '✓ Long enough'
+                : `At least 10 characters — ${10 - passphrase.length} to go. A few random words works well.`}
+            </p>
+          )}
         </div>
 
         {creating && (
           <div className="mt-3">
-            <label htmlFor={confirmId} className="block text-sm font-medium text-ink-soft">
+            <label htmlFor={confirmId} className="mb-1 block text-sm font-medium text-ink-soft">
               Confirm passphrase
             </label>
-            <input
+            <PassphraseInput
               id={confirmId}
-              type="password"
               autoComplete="new-password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
-              className={inputCls}
               required
             />
+            {confirm.length > 0 && (
+              <p
+                className={`mt-1 text-xs ${confirm === passphrase ? 'text-positive' : 'text-ink-faint'}`}
+                aria-live="polite"
+              >
+                {confirm === passphrase ? '✓ Passphrases match' : 'Passphrases don’t match yet'}
+              </p>
+            )}
           </div>
         )}
 

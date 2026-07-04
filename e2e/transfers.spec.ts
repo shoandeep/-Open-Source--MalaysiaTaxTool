@@ -25,7 +25,7 @@ test('quick-add Save raises a cash account and logs an editable entry', async ({
   await expect(dlg.getByRole('button', { name: 'RYT Bank' })).toHaveAttribute('aria-pressed', 'true');
   for (const k of ['5', '0', '0', '0', '0']) await dlg.getByRole('button', { name: k, exact: true }).click();
   await expect(dlg.getByText('RM500.00')).toBeVisible();
-  await dlg.getByRole('button', { name: 'Save', exact: true }).last().click(); // primary action
+  await dlg.getByRole('button', { name: 'Log', exact: true }).click(); // primary action
 
   // The cash account reflects it and a transfer is logged under it.
   await expect(page.getByText('Transfers (1)')).toBeVisible();

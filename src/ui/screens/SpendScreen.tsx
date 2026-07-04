@@ -434,7 +434,7 @@ export function SpendScreen() {
                     {catName(e.categoryId)}
                     {e.note ? <span className="text-ink-faint"> · {e.note}</span> : null}
                   </p>
-                  <p className="text-xs text-ink-faint">{e.dateISO}</p>
+                  <p className="text-xs text-ink-faint">{shortDate(e.dateISO)}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="tabular-nums">{formatSen(e.amountSen)}</span>

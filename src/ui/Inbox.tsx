@@ -3,6 +3,9 @@ import { unsortedExpenses } from '../budget/capture';
 import { formatSen } from '../money/money';
 import { Card, Button } from './components';
 
+const shortDate = (iso: string) =>
+  new Date(`${iso}T00:00:00`).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' });
+
 /**
  * "Sort later" inbox: quick captures with no category yet. Tap a category to
  * file one in a single tap (the ADHD-friendly capture-now / triage-later flow).
@@ -41,7 +44,7 @@ export function Inbox() {
                 </p>
                 <p className="truncate text-xs text-ink-faint">
                   {e.note ? `${e.note} · ` : ''}
-                  {e.dateISO}
+                  {shortDate(e.dateISO)}
                 </p>
               </div>
               <Button

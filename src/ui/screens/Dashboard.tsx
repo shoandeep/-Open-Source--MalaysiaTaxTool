@@ -25,22 +25,6 @@ export function Dashboard({
     <div className="space-y-4 lg:columns-2 lg:gap-4 lg:space-y-0">
       <Inbox />
 
-      {data.pay.grossSen === 0 && (
-        <Card className="break-inside-avoid lg:mb-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm text-ink-soft">
-              Start by entering your gross monthly pay.
-            </p>
-            <button
-              onClick={onGoToPay}
-              className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-contrast transition hover:brightness-110"
-            >
-              Add pay
-            </button>
-          </div>
-        </Card>
-      )}
-
       {/* No silk-panel here: its un-layered background shorthand would override bg-primary. */}
       <section className="kain-edge break-inside-avoid rounded-2xl bg-primary p-4 shadow-lg ring-1 ring-gold/30 lg:mb-4">
         <div className="flex items-end justify-between">
@@ -80,6 +64,21 @@ export function Dashboard({
       </section>
 
       <Card title="Today's spending" className="break-inside-avoid lg:mb-4" action={<a href="#" onClick={(e) => { e.preventDefault(); onGoToSpend(); }} className="text-xs font-semibold text-gold hover:underline">Details →</a>}>
+        {/* Unconfigured: one guided line beats a wall of RM0.00 stats. */}
+        {f.spending.monthlyBudgetSen === 0 ? (
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-ink-soft">
+              Enter your salary and Finance Guru works out a daily spending allowance for you.
+            </p>
+            <button
+              onClick={onGoToPay}
+              className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-contrast transition hover:brightness-110"
+            >
+              Add salary
+            </button>
+          </div>
+        ) : (
+          <>
         <div className="grid grid-cols-2 gap-4">
           <Stat
             label="Can spend today (avg)"
@@ -120,6 +119,8 @@ export function Dashboard({
               );
             })}
           </ul>
+        )}
+          </>
         )}
       </Card>
 

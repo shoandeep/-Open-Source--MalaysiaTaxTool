@@ -5,7 +5,7 @@ import { todayISO } from '../budget/dates';
 import { exportCashflowCsv, exportExpensesCsv, exportIncomeCsv } from '../export/csv';
 import { downloadReport, printReport } from '../export/report';
 import { downloadPdf } from '../export/pdf';
-import { Button, TextInput, Toggle, Select } from './components';
+import { Button, TextInput, PassphraseInput, Toggle, Select } from './components';
 import { MALAYSIAN_STATES, weekendLabel } from '../budget/holidays';
 import type { MalaysianState, Profile } from '../model/types';
 
@@ -258,8 +258,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
                   </Button>
                 ) : (
                   <div className="space-y-2">
-                    <TextInput
-                      type="password"
+                    <PassphraseInput
                       autoComplete="current-password"
                       placeholder="Current passphrase"
                       aria-label="Current passphrase"
@@ -292,20 +291,23 @@ export function Settings({ onClose }: { onClose: () => void }) {
               <label htmlFor={newId} className="sr-only">
                 New passphrase
               </label>
-              <TextInput
+              <PassphraseInput
                 id={newId}
-                type="password"
                 autoComplete="new-password"
                 placeholder="New passphrase"
                 value={newPass}
                 onChange={(e) => setNewPass(e.target.value)}
               />
+              {newPass.length > 0 && newPass.length < 10 && (
+                <p className="text-xs text-ink-faint" aria-live="polite">
+                  At least 10 characters — {10 - newPass.length} to go.
+                </p>
+              )}
               <label htmlFor={confirmId} className="sr-only">
                 Confirm new passphrase
               </label>
-              <TextInput
+              <PassphraseInput
                 id={confirmId}
-                type="password"
                 autoComplete="new-password"
                 placeholder="Confirm new passphrase"
                 value={confirmPass}

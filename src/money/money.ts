@@ -96,7 +96,7 @@ export function formatSen(
   const ringgitStr = ringgit.toLocaleString('en-MY');
   const body = `${ringgitStr}.${cents.toString().padStart(2, '0')}`;
   const prefix = symbol ? 'RM' : '';
-  const signStr = negative ? '-' : signed ? '+' : '';
+  const signStr = negative ? '-' : signed && sen > 0 ? '+' : ''; // no '+' on zero
   return `${signStr}${prefix}${body}`;
 }
 

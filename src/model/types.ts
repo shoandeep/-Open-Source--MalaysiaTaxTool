@@ -245,4 +245,6 @@ export interface AppData {
   transfers: Transfer[];
   /** Credit cards & BNPL plans you owe and pay down. */
   debts: DebtAccount[];
+  /** Payment method last used in quick capture — restored as the default next time. */
+  lastCaptureMethod?: PaymentMethod;
 }

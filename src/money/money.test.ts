@@ -53,6 +53,7 @@ describe('formatSen', () => {
     expect(formatSen(-1_234)).toBe('-RM12.34');
     expect(formatSen(100, { symbol: false })).toBe('1.00');
     expect(formatSen(100, { signed: true })).toBe('+RM1.00');
+    expect(formatSen(0, { signed: true })).toBe('RM0.00'); // no '+' on zero
   });
 });
 

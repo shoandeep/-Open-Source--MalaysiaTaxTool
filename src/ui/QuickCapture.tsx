@@ -8,9 +8,6 @@ import { formatSen, type Sen } from '../money/money';
 import type { Transfer, TransferKind, PaymentMethod } from '../model/types';
 import { Button } from './components';
 
-// Remembered across captures in this session so repeat logging is one tap fewer.
-let lastMethod: PaymentMethod | undefined;
-
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0', 'back'];
 const MAX_SEN = 99_999_999; // RM999,999.99 cap
 
@@ -42,7 +39,8 @@ export function QuickCapture({
   const [mode, setMode] = useState<Mode>('spend');
   const [cents, setCents] = useState<Sen>(initialCents);
   const [categoryId, setCategoryId] = useState<string>(''); // '' = unsorted
-  const [method, setMethod] = useState<PaymentMethod | undefined>(lastMethod); // how it was paid
+  // How it was paid — defaults to the persisted last-used method so repeat logging is one tap fewer.
+  const [method, setMethod] = useState<PaymentMethod | undefined>(() => data?.lastCaptureMethod);
   const [targetId, setTargetId] = useState<string>(''); // save/invest target account
   const [note, setNote] = useState(initialNote);
   const [savedFlash, setSavedFlash] = useState(false);
@@ -97,7 +95,7 @@ export function QuickCapture({
           ...(method ? { method } : {}),
           ...(note.trim() ? { note: note.trim() } : {}),
         });
-        lastMethod = method; // remember for the next capture
+        if (method) d.lastCaptureMethod = method; // remember for the next capture (persisted)
         return;
       }
       const kind: TransferKind = mode === 'save' ? 'cash' : mode === 'invest' ? 'investment' : 'debt';
@@ -264,10 +262,10 @@ export function QuickCapture({
             onClick={() => commit(false)}
             disabled={cents <= 0 || !targetValid}
           >
-            Save &amp; add another
+            Log &amp; add another
           </Button>
           <Button variant="primary" className="flex-1" onClick={save} disabled={cents <= 0 || !targetValid}>
-            Save
+            Log
           </Button>
         </div>
         <p className="mt-2 text-center text-[11px] text-ink-faint">
