@@ -74,18 +74,27 @@ const longDate = (iso: string, opts: Intl.DateTimeFormatOptions) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString('en-MY', opts);
 
 /* ------------------------------------------------------------------ Chip */
-function Chip({ ev }: { ev: RecurringEvent }) {
+/**
+ * Event chip. In `compact` mode (month view — cells are ~48px wide) the name is
+ * dropped and the amount may truncate, so nothing can spill into the next day's
+ * cell; the full name/amount stay available via the title tooltip and week view.
+ */
+function Chip({ ev, compact = false }: { ev: RecurringEvent; compact?: boolean }) {
   const meta = EVENT_META[ev.type];
   const inn = eventDirection(ev.type) === 'in';
   return (
     <div
-      className="flex items-center gap-1 rounded-md px-1 py-0.5 text-[10px] leading-tight"
+      className="flex items-center gap-1 overflow-hidden rounded-md px-1 py-0.5 text-[10px] leading-tight"
       style={{ background: tint(meta.color, 0.16) }}
       title={`${ev.name || meta.label} · ${inn ? '+' : '−'}${formatSen(ev.amountSen)}`}
     >
       <span className="shrink-0">{eventEmoji(ev)}</span>
-      <span className="min-w-0 flex-1 truncate font-medium text-ink">{ev.name || meta.label}</span>
-      <span className={`shrink-0 tabular-nums font-semibold ${inn ? 'text-positive' : 'text-ink-soft'}`}>
+      {!compact && <span className="min-w-0 flex-1 truncate font-medium text-ink">{ev.name || meta.label}</span>}
+      <span
+        className={`min-w-0 truncate tabular-nums font-semibold ${compact ? '' : 'shrink-0'} ${
+          inn ? 'text-positive' : 'text-ink-soft'
+        }`}
+      >
         {inn ? '+' : '−'}
         {compactMag(ev.amountSen)}
       </span>
@@ -312,7 +321,7 @@ export function CalendarScreen() {
                 onClick={() => selectDay(c.dateISO, c.inMonth)}
                 aria-pressed={selected}
                 aria-label={`${longDate(c.dateISO, { weekday: 'long', day: 'numeric', month: 'long' })}${c.events.length ? `, ${c.events.length} events` : ''}`}
-                className={`flex flex-col rounded-lg p-1 text-left align-top transition ${view === 'week' ? 'min-h-[7rem]' : 'min-h-[4rem]'} ${
+                className={`flex flex-col overflow-hidden rounded-lg p-1 text-left align-top transition ${view === 'week' ? 'min-h-[7rem]' : 'min-h-[4rem]'} ${
                   c.inMonth ? '' : 'opacity-40'
                 } ${selected ? 'bg-primary/10 ring-2 ring-primary' : c.isToday ? 'ring-2 ring-gold' : 'ring-1 ring-line hover:ring-gold/40'}`}
               >
@@ -354,7 +363,7 @@ export function CalendarScreen() {
                     </div>
                   )}
                   {shown.map((e) => (
-                    <Chip key={e.id} ev={e} />
+                    <Chip key={e.id} ev={e} compact={view !== 'week'} />
                   ))}
                   {c.events.length > shown.length && (
                     <div className="px-1 text-[9px] font-medium text-ink-faint">+{c.events.length - shown.length} more</div>

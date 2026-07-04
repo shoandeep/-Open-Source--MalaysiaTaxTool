@@ -61,7 +61,7 @@ function PaySchedule() {
 
       {cfg.mode !== 'calendarMonth' && (
         <label className="mt-3 block text-xs text-ink-soft">
-          Payday — day of month
+          Day of the month you get paid
           <input
             type="number"
             min={1}
