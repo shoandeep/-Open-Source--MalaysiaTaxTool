@@ -4,7 +4,8 @@ import { todayISO } from '../../budget/dates';
 import { newId } from '../../model/defaults';
 import { formatSen } from '../../money/money';
 import { cashSummary } from '../../budget/cash';
-import type { CashAccountType } from '../../model/types';
+import { investSummary, INVESTMENT_TYPES, INVESTMENT_LABEL } from '../../budget/invest';
+import type { CashAccountType, InvestmentType } from '../../model/types';
 import { Card, Money, MoneyInput, TextInput, Select, Button, ProgressBar, Stat, Disclaimer, Toggle } from '../components';
 import { TransferLog } from '../TransferLog';
 import { useUndo } from '../undo';
@@ -188,6 +189,59 @@ function CashSavings({ today }: { today: string }) {
                       />
                     </label>
                   </div>
+                  {/* FD placements: start + tenure → derived maturity date & value. */}
+                  {acc.type === 'fd' && (
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      <label className="text-xs text-ink-faint">
+                        Placed on
+                        <input
+                          type="date"
+                          value={acc.startDate ?? ''}
+                          aria-label="FD start date"
+                          onChange={(e) =>
+                            patch((a) => {
+                              if (e.target.value) a.startDate = e.target.value;
+                              else delete a.startDate;
+                            })
+                          }
+                          className={rateInputCls + ' text-left'}
+                        />
+                      </label>
+                      <label className="text-xs text-ink-faint">
+                        Tenure (months)
+                        <input
+                          type="number"
+                          min={1}
+                          max={120}
+                          inputMode="numeric"
+                          value={acc.termMonths ?? ''}
+                          placeholder="e.g. 6"
+                          aria-label="FD tenure in months"
+                          onChange={(e) =>
+                            patch((a) => {
+                              const n = Math.max(0, Math.min(120, Number(e.target.value) || 0));
+                              if (n > 0) a.termMonths = n;
+                              else delete a.termMonths;
+                            })
+                          }
+                          className={rateInputCls}
+                        />
+                      </label>
+                    </div>
+                  )}
+                  {s.fd && (
+                    <p
+                      className={`mt-2 rounded-lg px-2 py-1.5 text-xs ${
+                        s.fd.matured ? 'bg-gold/15 font-semibold text-gold' : 'bg-primary/8 text-ink-soft'
+                      }`}
+                    >
+                      {s.fd.matured
+                        ? `Matured ${fmtDate(s.fd.maturityISO)} — worth ${formatSen(s.fd.maturityValueSen)}. Time to renew or move it.`
+                        : `Matures ${fmtDate(s.fd.maturityISO)} (${s.fd.daysToMaturity}d) · ${formatSen(
+                            s.fd.maturityValueSen,
+                          )} incl. ${formatSen(s.fd.interestSen)} interest`}
+                    </p>
+                  )}
                   <div className="mt-2 flex items-center justify-between gap-2 text-xs">
                     <span
                       className={`rounded-md px-2 py-0.5 font-semibold ${
@@ -227,6 +281,7 @@ export function SavingsScreen() {
   if (!data) return null;
   const today = todayISO();
   const f = deriveFinances(data, today);
+  const invSum = investSummary(data.investments);
 
   return (
     <div className="space-y-4">
@@ -452,6 +507,45 @@ export function SavingsScreen() {
                       })
                     }
                   />
+                  <Select
+                    aria-label="Investment type"
+                    className="col-start-1 mt-1"
+                    value={inv.type ?? 'other'}
+                    onChange={(e) =>
+                      update((d) => {
+                        const item = d.investments.find((x) => x.id === inv.id);
+                        if (item) item.type = e.target.value as InvestmentType;
+                      })
+                    }
+                  >
+                    {INVESTMENT_TYPES.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.emoji} {t.label}
+                      </option>
+                    ))}
+                  </Select>
+                  <label className="col-start-2 mt-1 flex items-center gap-1 text-xs text-ink-faint">
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.01}
+                      value={inv.ratePercent ?? ''}
+                      placeholder="rate"
+                      aria-label={`${inv.name || 'Investment'} expected rate percent`}
+                      onChange={(e) =>
+                        update((d) => {
+                          const item = d.investments.find((x) => x.id === inv.id);
+                          if (!item) return;
+                          const v = e.target.value;
+                          if (v === '') delete item.ratePercent;
+                          else item.ratePercent = Math.max(0, Math.min(100, Number(v) || 0));
+                        })
+                      }
+                      className={rateInputCls}
+                    />
+                    <span>%</span>
+                  </label>
                   <Button
                     variant="danger"
                     className="px-2"
@@ -487,6 +581,20 @@ export function SavingsScreen() {
             <Money sen={f.investmentsTotalSen} />
           </span>
         </div>
+        {invSum.byType.length > 0 && (
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px]">
+            {invSum.byType.map((t) => (
+              <span key={t.type} className="rounded-full bg-surface-2 px-2 py-0.5 tabular-nums text-ink-soft ring-1 ring-inset ring-line">
+                {INVESTMENT_LABEL[t.type]} {formatSen(t.totalSen)}
+              </span>
+            ))}
+            {invSum.projectedAnnualSen > 0 && (
+              <span className="ml-auto tabular-nums text-ink-faint">
+                ≈ {formatSen(invSum.projectedAnnualSen)}/yr projected
+              </span>
+            )}
+          </div>
+        )}
       </Card>
 
       <Disclaimer>Tracking only — not investment advice.</Disclaimer>

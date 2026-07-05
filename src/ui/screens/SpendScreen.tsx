@@ -6,7 +6,7 @@ import { newId } from '../../model/defaults';
 import { formatSen, type Sen } from '../../money/money';
 import type { SpendPeriod } from '../../budget/spendingPlan';
 import type { PaymentMethod, DebtKind } from '../../model/types';
-import { paymentTotals, PAYMENT_METHODS, PAYMENT_EMOJI } from '../../budget/payments';
+import { paymentTotals, spendByAccount, spendByPlace, PAYMENT_METHODS, PAYMENT_EMOJI } from '../../budget/payments';
 import { Card, Money, MoneyInput, TextInput, Select, Button, Stat, ProgressBar, Disclaimer } from '../components';
 import { CategoryDonut, DailyBars } from '../charts';
 import { Transactions } from '../Transactions';
@@ -125,6 +125,14 @@ export function SpendScreen() {
   const methodTotals = paymentTotals(monthExpenses);
   const debts = data.debts ?? [];
   const totalOwedSen = debts.reduce((s, d) => s + d.balanceSen, 0);
+  // Per wallet/card + per place (names resolved from cash accounts and debts).
+  const accountName = (id: string) =>
+    (data.cashAccounts ?? []).find((a) => a.id === id)?.name ?? debts.find((x) => x.id === id)?.name;
+  const accountRows = [...spendByAccount(monthExpenses)]
+    .map(([id, totalSen]) => ({ id, name: accountName(id), totalSen }))
+    .filter((r): r is { id: string; name: string; totalSen: Sen } => !!r.name)
+    .sort((a, b) => b.totalSen - a.totalSen);
+  const placeRows = spendByPlace(monthExpenses);
 
   const shareSum = cats.reduce((s, c) => s + c.sharePercent, 0);
 
@@ -423,6 +431,49 @@ export function SpendScreen() {
               </li>
             )}
           </ul>
+          {accountRows.length > 0 && (
+            <>
+              <p className="mb-1 mt-3 border-t border-line pt-2 text-[11px] font-medium uppercase tracking-wide text-ink-faint">
+                By wallet / card
+              </p>
+              <ul className="space-y-1.5">
+                {accountRows.map((r) => (
+                  <li key={r.id} className="flex items-center justify-between gap-2 text-sm">
+                    <span className="truncate text-ink-soft">{r.name}</span>
+                    <span className="tabular-nums text-ink">{formatSen(r.totalSen)}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </Card>
+      )}
+
+      {/* Spend-by-place: private by design — free-text tags (vendor notes), aggregated
+          on-device. No map tiles / geolocation, so the strict CSP holds. */}
+      {placeRows.length > 0 && (
+        <Card title="Where you spend this month">
+          <ul className="space-y-2">
+            {placeRows.slice(0, 8).map((p) => {
+              const pct = methodTotals.totalSen > 0 ? Math.round((p.totalSen / methodTotals.totalSen) * 100) : 0;
+              return (
+                <li key={p.place}>
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <span className="truncate text-ink-soft">
+                      📍 {p.place} <span className="text-xs text-ink-faint">×{p.count}</span>
+                    </span>
+                    <span className="tabular-nums text-ink">{formatSen(p.totalSen)}</span>
+                  </div>
+                  <div className="mt-1">
+                    <ProgressBar value={pct} tone="indigo" label={`${p.place} share`} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-2 text-[11px] text-ink-faint">
+            Grouped from your vendor notes — name the vendor when logging and this fills itself in.
+          </p>
         </Card>
       )}
 

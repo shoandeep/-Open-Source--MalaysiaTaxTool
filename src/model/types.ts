@@ -102,11 +102,26 @@ export interface Goal {
   deadline?: string;
 }
 
+/** Malaysian investment vehicles (labels in src/budget/invest.ts). */
+export type InvestmentType =
+  | 'stocks'
+  | 'unitTrust'
+  | 'asnb' // Amanah Saham Nasional Berhad
+  | 'tabungHaji'
+  | 'robo'
+  | 'crypto'
+  | 'epf' // voluntary EPF (self-contribution / i-Saraan)
+  | 'other';
+
 export interface Investment {
   id: string;
   name: string;
   /** Running total contributed/held (tracking only — not advice). */
   currentSen: number;
+  /** What kind of vehicle this is (optional — unset = other). */
+  type?: InvestmentType;
+  /** Optional expected/declared annual rate (%, p.a.) for projection-only display. */
+  ratePercent?: number;
 }
 
 /** Which tracker a logged transfer feeds. */
@@ -164,6 +179,11 @@ export interface Expense {
   note?: string;
   /** How it was paid (debit/e-wallet/cash/credit/BNPL). Optional — unset = untagged. */
   method?: PaymentMethod;
+  /** The specific account it was paid with: a CashAccount id (debit/e-wallet) or a
+   * DebtAccount id (credit/BNPL). Optional — unset = method only. */
+  methodAccountId?: string;
+  /** Free-text place/vendor tag for the spend-by-place view (e.g. "Tesco Ampang"). */
+  place?: string;
   /** Set when auto-created from a recurring calendar event (provenance/badge). */
   sourceEventId?: string;
 }
@@ -182,6 +202,10 @@ export interface CashAccount {
   promoRatePercent?: number;
   /** ISO date the promo rate applies until, inclusive (YYYY-MM-DD). */
   promoEnds?: string;
+  /** FD only: ISO date the placement started (YYYY-MM-DD). */
+  startDate?: string;
+  /** FD only: tenure in months — maturity is derived (MY FDs pay simple interest at maturity). */
+  termMonths?: number;
 }
 
 /** A recurring (or one-off) money event shown on the calendar. */
@@ -247,4 +271,6 @@ export interface AppData {
   debts: DebtAccount[];
   /** Payment method last used in quick capture — restored as the default next time. */
   lastCaptureMethod?: PaymentMethod;
+  /** Per-method last-used account id (wallet/card) — capture stays decision-free. */
+  lastCaptureAccounts?: Partial<Record<PaymentMethod, string>>;
 }

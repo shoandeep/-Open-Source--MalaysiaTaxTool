@@ -71,3 +71,48 @@ describe('cash summary', () => {
     expect(sum.blendedRatePercent).toBe(0);
   });
 });
+
+describe('fixed deposit maturity (simple interest, MY convention)', () => {
+  const fd = (over: Partial<CashAccount>): CashAccount => ({
+    id: 'f',
+    name: 'Maybank FD',
+    type: 'fd',
+    balanceSen: 1_000_000, // RM10,000
+    ratePercent: 3.5,
+    ...over,
+  });
+
+  it('derives maturity date, interest and value from start + term', () => {
+    const s = cashAccountStatus(fd({ startDate: '2026-01-15', termMonths: 6 }), today);
+    expect(s.fd).toBeDefined();
+    expect(s.fd!.maturityISO).toBe('2026-07-15');
+    expect(s.fd!.matured).toBe(false);
+    expect(s.fd!.daysToMaturity).toBe(19); // 26 Jun → 15 Jul
+    // RM10,000 × 3.5% × 6/12 = RM175.00
+    expect(s.fd!.interestSen).toBe(17_500);
+    expect(s.fd!.maturityValueSen).toBe(1_017_500);
+  });
+
+  it('uses the placement (promo) rate for the whole tenure when set', () => {
+    const s = cashAccountStatus(fd({ startDate: '2026-01-01', termMonths: 12, promoRatePercent: 4.2 }), today);
+    // RM10,000 × 4.2% × 12/12 = RM420.00
+    expect(s.fd!.interestSen).toBe(42_000);
+  });
+
+  it('flags matured FDs', () => {
+    const s = cashAccountStatus(fd({ startDate: '2025-01-01', termMonths: 12 }), today);
+    expect(s.fd!.maturityISO).toBe('2026-01-01');
+    expect(s.fd!.matured).toBe(true);
+    expect(s.fd!.daysToMaturity).toBeLessThan(0);
+  });
+
+  it('clamps end-of-month starts (31 Aug + 6mo -> 28 Feb)', () => {
+    const s = cashAccountStatus(fd({ startDate: '2025-08-31', termMonths: 6 }), today);
+    expect(s.fd!.maturityISO).toBe('2026-02-28');
+  });
+
+  it('is absent for non-FDs and unconfigured FDs', () => {
+    expect(cashAccountStatus(fd({ type: 'bank', startDate: '2026-01-01', termMonths: 6 }), today).fd).toBeUndefined();
+    expect(cashAccountStatus(fd({}), today).fd).toBeUndefined();
+  });
+});

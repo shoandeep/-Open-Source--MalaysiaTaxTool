@@ -69,3 +69,32 @@ export function amountsDue(expenses: Expense[]): AmountsDue {
   }
   return { creditSen, bnplSen, totalSen: creditSen + bnplSen };
 }
+
+/**
+ * Spend per specific account (wallet/card) for expenses tagged with a
+ * methodAccountId — newest ids keep insertion order. Display-only: the
+ * DebtAccount's entered bill stays authoritative for what you owe.
+ */
+export function spendByAccount(expenses: Expense[]): Map<string, Sen> {
+  const acc = new Map<string, Sen>();
+  for (const e of expenses) {
+    if (!e.methodAccountId) continue;
+    acc.set(e.methodAccountId, (acc.get(e.methodAccountId) ?? 0) + e.amountSen);
+  }
+  return acc;
+}
+
+/** Month spend grouped by free-text place tag (case-insensitive, trimmed; largest first). */
+export function spendByPlace(expenses: Expense[]): { place: string; totalSen: Sen; count: number }[] {
+  const acc = new Map<string, { place: string; totalSen: Sen; count: number }>();
+  for (const e of expenses) {
+    const raw = (e.place ?? e.note ?? '').trim();
+    if (!raw) continue;
+    const key = raw.toLocaleLowerCase();
+    const cur = acc.get(key) ?? { place: raw, totalSen: 0, count: 0 };
+    cur.totalSen += e.amountSen;
+    cur.count += 1;
+    acc.set(key, cur);
+  }
+  return [...acc.values()].sort((a, b) => b.totalSen - a.totalSen);
+}

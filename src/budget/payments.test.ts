@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { paymentTotals, amountsDue, PAYMENT_METHODS } from './payments';
+import { paymentTotals, amountsDue, spendByAccount, spendByPlace, PAYMENT_METHODS } from './payments';
 import type { Expense } from '../model/types';
 
 const e = (p: Partial<Expense>): Expense => ({
@@ -49,5 +49,32 @@ describe('amountsDue', () => {
 describe('PAYMENT_METHODS', () => {
   it('covers the five methods', () => {
     expect(PAYMENT_METHODS.map((m) => m.id)).toEqual(['cash', 'debit', 'ewallet', 'credit', 'bnpl']);
+  });
+});
+
+describe('spendByAccount', () => {
+  it('groups tagged spend per wallet/card and ignores untagged', () => {
+    const m = spendByAccount([
+      { id: '1', categoryId: '', amountSen: 100, dateISO: '2026-07-01', method: 'credit', methodAccountId: 'visa' },
+      { id: '2', categoryId: '', amountSen: 250, dateISO: '2026-07-02', method: 'credit', methodAccountId: 'visa' },
+      { id: '3', categoryId: '', amountSen: 400, dateISO: '2026-07-02', method: 'ewallet', methodAccountId: 'tng' },
+      { id: '4', categoryId: '', amountSen: 999, dateISO: '2026-07-03', method: 'cash' },
+    ]);
+    expect(m.get('visa')).toBe(350);
+    expect(m.get('tng')).toBe(400);
+    expect(m.size).toBe(2);
+  });
+});
+
+describe('spendByPlace', () => {
+  it('groups case-insensitively, falls back to note, sorts by spend', () => {
+    const rows = spendByPlace([
+      { id: '1', categoryId: '', amountSen: 100, dateISO: '2026-07-01', place: 'Tesco Ampang' },
+      { id: '2', categoryId: '', amountSen: 300, dateISO: '2026-07-02', place: 'tesco ampang' },
+      { id: '3', categoryId: '', amountSen: 900, dateISO: '2026-07-02', note: 'Grab' },
+      { id: '4', categoryId: '', amountSen: 50, dateISO: '2026-07-03' }, // no tag → skipped
+    ]);
+    expect(rows.map((r) => r.place)).toEqual(['Grab', 'Tesco Ampang']);
+    expect(rows[1]).toMatchObject({ totalSen: 400, count: 2 });
   });
 });

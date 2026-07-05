@@ -68,19 +68,24 @@ Transactions view. Branded HTML + PDF export.
 ## Roadmap (intended order)
 
 1. ~~Gates for `b840ab8`~~ ✅ done (8/8 feature-test, audit APPROVED, deployed).
-2. ~~Realistic 50-sen coin logo~~ ✅ shipped in `9c23084` (`src/ui/CoinLogo.tsx`, pure inline
-   SVG + regenerated PWA icons). **Remaining polish: UX findings #2–#10** (see status above) —
-   each fixed or justified won't-fix here.
-3. **Core-tracking completeness for publishing** — design settled (build as pure logic +
-   tests first): `CashAccount` + `startDate/termMonths/maturityDate` for bank FDs (simple
-   interest to maturity, integer-sen half-up); e-wallet FD promos via existing
-   `promoRatePercent/promoEnds`; `Investment.type` (stocks/unitTrust/ASNB/TabungHaji/robo/
-   crypto/EPF/other) + `ratePercent` projection; `Expense.methodAccountId` linking payments
-   to specific wallets/cards with last-used-per-method defaults.
-4. **Then** the monthly **purchase map view** (spend by location). ⚠️ Open design decision:
-   map tiles are remote by default and collide with the strict CSP / no-network rule — resolve
-   first (bundled/offline tiles vs. manual location tagging vs. a documented CSP exception)
-   before building; also revisit Permissions-Policy (geolocation currently disabled).
+2. ~~Realistic 50-sen coin logo~~ ✅ shipped in `9c23084`; ~~UX findings #1–#10~~ ✅ all fixed.
+3. ~~Core-tracking completeness~~ ✅ **built (2026-07-05)**: bank **FDs** get placed-on +
+   tenure with derived maturity date/value (`fdStatus` in `src/budget/cash.ts` — simple
+   interest, integer-sen half-up, matured flag + renewal nudge); **e-wallet FD promos** via
+   `promoRatePercent/promoEnds` (already live); **investment types** first-class
+   (stocks/unit trust/ASNB/Tabung Haji/robo/crypto/EPF/other, `src/budget/invest.ts` with
+   per-type totals + projection-only rate); **per wallet/card** payment linking
+   (`Expense.methodAccountId`, QuickCapture account chips remembered per method via
+   `AppData.lastCaptureAccounts`, "By wallet / card" breakdown on Expenses).
+4. ~~Purchase map view~~ ✅ **decided & implemented (2026-07-05) as private place tracking.**
+   Options weighed: remote tile server (violates `connect-src 'self'`, leaks every tagged
+   location to a third party), bundled offline tiles (tens of MB against a lean PWA), GPS
+   auto-capture (Permissions-Policy locks geolocation; auto-location is a privacy footgun),
+   and **manual place tagging aggregated on-device — chosen**: zero new deps, zero egress,
+   CSP + Permissions-Policy untouched. Implemented as `Expense.place` (falls back to the
+   vendor note), pure `spendByPlace` in `src/budget/payments.ts`, and a "Where you spend
+   this month" card on Expenses. Future nicety: a self-hosted Malaysia SVG choropleth by
+   state — still CSP-clean — if visual geography is ever wanted.
 
 ## Key files (see `CLAUDE.md` for the full map)
 

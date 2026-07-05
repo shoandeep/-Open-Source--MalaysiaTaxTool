@@ -41,6 +41,10 @@ export function QuickCapture({
   const [categoryId, setCategoryId] = useState<string>(''); // '' = unsorted
   // How it was paid — defaults to the persisted last-used method so repeat logging is one tap fewer.
   const [method, setMethod] = useState<PaymentMethod | undefined>(() => data?.lastCaptureMethod);
+  // Which wallet/card — defaults to the persisted last-used account for that method.
+  const [methodAccountId, setMethodAccountId] = useState<string>(() =>
+    data?.lastCaptureMethod ? (data.lastCaptureAccounts?.[data.lastCaptureMethod] ?? '') : '',
+  );
   const [targetId, setTargetId] = useState<string>(''); // save/invest target account
   const [note, setNote] = useState(initialNote);
   const [savedFlash, setSavedFlash] = useState(false);
@@ -62,6 +66,23 @@ export function QuickCapture({
   const investments = data.investments.filter((i) => i.name.trim());
   const accounts = (data.cashAccounts ?? []).filter((a) => a.name.trim());
   const debts = (data.debts ?? []).filter((d) => d.name.trim());
+
+  // Spend mode: the specific wallets/cards behind the chosen payment method.
+  const methodAccounts =
+    method === 'ewallet'
+      ? accounts.filter((a) => a.type === 'ewallet')
+      : method === 'debit'
+        ? accounts.filter((a) => a.type === 'bank')
+        : method === 'credit'
+          ? debts.filter((d) => d.kind === 'credit')
+          : method === 'bnpl'
+            ? debts.filter((d) => d.kind === 'bnpl')
+            : [];
+
+  function pickMethod(m: PaymentMethod | undefined) {
+    setMethod(m);
+    setMethodAccountId(m ? (data?.lastCaptureAccounts?.[m] ?? '') : '');
+  }
 
   // Targets for the active mode: cash accounts (Save), investments (Invest) or debts (Repay).
   const targets = mode === 'save' ? accounts : mode === 'invest' ? investments : mode === 'debt' ? debts : [];
@@ -87,15 +108,20 @@ export function QuickCapture({
     if (cents <= 0 || !targetValid) return;
     update((d) => {
       if (mode === 'spend') {
+        const accValid = method && methodAccounts.some((a) => a.id === methodAccountId);
         d.expenses.push({
           id: newId(),
           categoryId,
           amountSen: cents,
           dateISO: todayISO(),
           ...(method ? { method } : {}),
+          ...(accValid ? { methodAccountId } : {}),
           ...(note.trim() ? { note: note.trim() } : {}),
         });
-        if (method) d.lastCaptureMethod = method; // remember for the next capture (persisted)
+        if (method) {
+          d.lastCaptureMethod = method; // remember for the next capture (persisted)
+          if (accValid) d.lastCaptureAccounts = { ...(d.lastCaptureAccounts ?? {}), [method]: methodAccountId };
+        }
         return;
       }
       const kind: TransferKind = mode === 'save' ? 'cash' : mode === 'invest' ? 'investment' : 'debt';
@@ -200,12 +226,26 @@ export function QuickCapture({
                 <Chip
                   key={pm.id}
                   active={method === pm.id}
-                  onClick={() => setMethod(method === pm.id ? undefined : pm.id)}
+                  onClick={() => pickMethod(method === pm.id ? undefined : pm.id)}
                 >
                   {pm.emoji} {pm.label}
                 </Chip>
               ))}
             </div>
+            {/* Which wallet/card (optional; only when the method has named accounts) */}
+            {methodAccounts.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-1.5">
+                {methodAccounts.map((a) => (
+                  <Chip
+                    key={a.id}
+                    active={methodAccountId === a.id}
+                    onClick={() => setMethodAccountId(methodAccountId === a.id ? '' : a.id)}
+                  >
+                    {a.name}
+                  </Chip>
+                ))}
+              </div>
+            )}
           </>
         )}
 
