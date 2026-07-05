@@ -164,7 +164,7 @@ export function CostsScreen() {
 
       <Card title="Allocation">
         <div className="mb-3 flex items-center justify-between">
-          <span className="text-xs text-ink-soft">Split your</span>
+          <span className="text-xs text-ink-soft">Amount to split</span>
           <div className="inline-flex rounded-lg border border-line p-0.5 text-xs">
             {(['disposable', 'net'] as AllocationBase[]).map((base) => (
               <button

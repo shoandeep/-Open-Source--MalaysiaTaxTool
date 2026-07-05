@@ -22,7 +22,7 @@ export function Dashboard({
   const isCycle = (data.payPeriod?.mode ?? 'calendarMonth') !== 'calendarMonth';
 
   return (
-    <div className="space-y-4 lg:columns-2 lg:gap-4 lg:space-y-0">
+    <div className="space-y-4 lg:columns-2 lg:gap-4 lg:space-y-0 xl:columns-3">
       <Inbox />
 
       {/* No silk-panel here: its un-layered background shorthand would override bg-primary. */}

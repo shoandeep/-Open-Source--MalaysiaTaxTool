@@ -45,6 +45,16 @@ export function AppShell() {
   const [captureInit, setCaptureInit] = useState<{ cents: number; note: string }>({ cents: 0, note: '' });
   const wide = tab === 'home';
 
+  // Hide the FAB while the on-screen keyboard is up — it hovered over form inputs.
+  const [kbOpen, setKbOpen] = useState(false);
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => setKbOpen(vv.height < window.innerHeight * 0.75);
+    vv.addEventListener('resize', onResize);
+    return () => vv.removeEventListener('resize', onResize);
+  }, []);
+
   const openQuickAdd = (init?: { cents: number; note: string }) => {
     setCaptureInit(init ?? { cents: 0, note: '' });
     setCaptureOpen(true);
@@ -277,7 +287,9 @@ export function AppShell() {
       <button
         onClick={() => openQuickAdd()}
         aria-label="Quick add expense"
-        className="fixed bottom-[5.25rem] right-[max(1rem,env(safe-area-inset-right))] z-30 grid h-14 w-14 place-items-center rounded-full bg-primary text-3xl font-light text-primary-contrast shadow-lg ring-1 ring-gold/30 transition active:scale-90 lg:hidden"
+        className={`fixed bottom-[5.25rem] right-[max(1rem,env(safe-area-inset-right))] z-30 grid h-14 w-14 place-items-center rounded-full bg-primary text-3xl font-light text-primary-contrast shadow-lg ring-1 ring-gold/30 transition active:scale-90 lg:hidden ${
+          kbOpen ? 'hidden' : ''
+        }`}
       >
         <span aria-hidden="true" className="-mt-0.5 leading-none">＋</span>
       </button>

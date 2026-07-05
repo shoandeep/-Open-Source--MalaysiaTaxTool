@@ -302,6 +302,14 @@ export function CalendarScreen() {
           ))}
         </div>
 
+        {/* First-run guidance: an empty month of hollow boxes explains nothing. */}
+        {data.recurringEvents.length === 0 && (
+          <p className="mb-2 rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-soft">
+            Add your salary, subscriptions and bills below — they'll appear here with payday,
+            public holidays and a day-by-day balance forecast.
+          </p>
+        )}
+
         <div className="grid grid-cols-7 text-center text-[10px] font-medium text-ink-faint">
           {WEEKDAYS.map((w) => (
             <div key={w} className="py-1">
