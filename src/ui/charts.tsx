@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { formatSen, type Sen } from '../money/money';
 
 /** On-brand jewel-tone palette for category segments (cycles if needed). */
@@ -23,17 +24,21 @@ export function CategoryDonut({ items }: { items: { name: string; value: Sen }[]
   const stroke = 20;
   const r = (size - stroke) / 2;
   const C = 2 * Math.PI * r;
+  // Hairline gaps between segments read cleaner than butted arcs; a gap must
+  // never swallow a sliver segment, so it scales down for tiny fractions.
+  const baseGap = segs.length > 1 ? 2.5 : 0;
   let acc = 0;
 
   return (
     <div className="flex items-center gap-5">
       <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} className="shrink-0" role="img" aria-label="Spending by category">
         <g transform={`translate(${size / 2} ${size / 2}) rotate(-90)`}>
-          <circle r={r} fill="none" stroke="hsl(var(--line))" strokeWidth={stroke} />
+          <circle r={r} fill="none" stroke="hsl(var(--line))" strokeWidth={stroke} opacity="0.6" />
           {segs.map((s, i) => {
             const frac = s.value / total;
             const dash = frac * C;
-            const off = -acc * C;
+            const gap = Math.min(baseGap, dash * 0.4);
+            const off = -(acc * C + gap / 2);
             acc += frac;
             return (
               <circle
@@ -42,7 +47,7 @@ export function CategoryDonut({ items }: { items: { name: string; value: Sen }[]
                 fill="none"
                 stroke={CHART_COLORS[i % CHART_COLORS.length]}
                 strokeWidth={stroke}
-                strokeDasharray={`${dash} ${C - dash}`}
+                strokeDasharray={`${dash - gap} ${C - dash + gap}`}
                 strokeDashoffset={off}
               />
             );
@@ -90,9 +95,22 @@ export function DailyBars({
   const top = Math.max(refValue, ...days.map((d) => d.value), 1);
   const bw = (W - padX * 2) / days.length;
   const refY = H - padBottom - (refValue / top) * innerH;
+  const gid = useId();
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Daily spending this month">
+      <defs>
+        <linearGradient id={`${gid}-bar`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="hsl(var(--primary-soft))" />
+          <stop offset="100%" stopColor="hsl(var(--primary))" />
+        </linearGradient>
+        <linearGradient id={`${gid}-today`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="hsl(var(--gold-bright))" />
+          <stop offset="100%" stopColor="hsl(var(--gold))" />
+        </linearGradient>
+      </defs>
+      {/* baseline */}
+      <line x1={padX} x2={W - padX} y1={H - padBottom} y2={H - padBottom} stroke="hsl(var(--line))" strokeWidth="1" />
       {/* average daily budget reference */}
       {refValue > 0 && (
         <>
@@ -112,9 +130,9 @@ export function DailyBars({
             y={H - padBottom - h}
             width={bw * 0.68}
             height={Math.max(h, 0)}
-            rx="1"
-            fill={d.today ? 'hsl(var(--gold))' : 'hsl(var(--primary))'}
-            opacity={d.value > 0 ? (d.today ? 1 : 0.85) : 0.18}
+            rx="2"
+            fill={d.value > 0 ? `url(#${gid}-${d.today ? 'today' : 'bar'})` : 'hsl(var(--primary))'}
+            opacity={d.value > 0 ? (d.today ? 1 : 0.9) : 0.18}
           />
         );
       })}

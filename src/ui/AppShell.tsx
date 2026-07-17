@@ -15,6 +15,7 @@ import { pendingMaterializations } from '../budget/autolog';
 import { todayISO, addDaysISO } from '../budget/dates';
 import { newId } from '../model/defaults';
 import { HomeIcon, SalaryIcon, BudgetIcon, SaveIcon, ExpensesIcon, CalendarIcon } from './icons';
+import { CalmAurora } from './components';
 import { UndoProvider } from './undo';
 
 type TabId = 'home' | 'pay' | 'costs' | 'save' | 'spend' | 'calendar';
@@ -120,6 +121,7 @@ export function AppShell() {
   return (
     <UndoProvider>
     <div className="weave-bg relative min-h-dvh text-ink lg:flex">
+      <CalmAurora />
       {/* Desktop sidebar */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-60 lg:flex-col lg:border-r lg:border-line lg:bg-surface/70 lg:px-3 lg:py-5 lg:backdrop-blur-xl">
         <div className="flex items-center gap-2.5 px-2">

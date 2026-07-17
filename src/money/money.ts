@@ -86,17 +86,31 @@ export function ringgitFromSen(sen: Sen): number {
  */
 export function formatSen(
   sen: Sen,
-  opts: { symbol?: boolean; signed?: boolean } = {},
+  opts: { symbol?: boolean; signed?: boolean; compact?: boolean } = {},
 ): string {
-  const { symbol = true, signed = false } = opts;
+  const { symbol = true, signed = false, compact = false } = opts;
   const negative = sen < 0;
   const abs = Math.abs(Math.trunc(sen));
+  const prefix = symbol ? 'RM' : '';
+  const signStr = negative ? '-' : signed && sen > 0 ? '+' : ''; // no '+' on zero
+
+  if (compact) {
+    // Chart/tile labels only: whole ringgit under 1k, then 1.2k / 3.4m. Display
+    // rounding only — the exact value always comes from the non-compact form.
+    const r = abs / SEN_PER_RINGGIT;
+    const body =
+      r >= 999_950 // rounds to 1000.0k — promote to m
+        ? `${(r / 1_000_000).toFixed(1).replace(/\.0$/, '')}m`
+        : r >= 999.5
+          ? `${(r / 1000).toFixed(1).replace(/\.0$/, '')}k`
+          : `${roundHalfUp(r)}`;
+    return `${signStr}${prefix}${body}`;
+  }
+
   const ringgit = Math.floor(abs / SEN_PER_RINGGIT);
   const cents = abs % SEN_PER_RINGGIT;
   const ringgitStr = ringgit.toLocaleString('en-MY');
   const body = `${ringgitStr}.${cents.toString().padStart(2, '0')}`;
-  const prefix = symbol ? 'RM' : '';
-  const signStr = negative ? '-' : signed && sen > 0 ? '+' : ''; // no '+' on zero
   return `${signStr}${prefix}${body}`;
 }
 

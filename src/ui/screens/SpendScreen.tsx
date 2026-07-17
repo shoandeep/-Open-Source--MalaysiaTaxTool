@@ -9,6 +9,7 @@ import type { PaymentMethod, DebtKind } from '../../model/types';
 import { paymentTotals, spendByAccount, spendByPlace, PAYMENT_METHODS, PAYMENT_EMOJI } from '../../budget/payments';
 import { Card, Money, MoneyInput, TextInput, Select, Button, Stat, ProgressBar, Disclaimer } from '../components';
 import { CategoryDonut, DailyBars } from '../charts';
+import { SpendingMap } from '../SpendingMap';
 import { Transactions } from '../Transactions';
 import { TransferLog } from '../TransferLog';
 import { useUndo } from '../undo';
@@ -76,6 +77,7 @@ export function SpendScreen() {
   const [date, setDate] = useState<string>(today);
   const [note, setNote] = useState('');
   const [txnsOpen, setTxnsOpen] = useState(false);
+  const [placeView, setPlaceView] = useState<'map' | 'list'>('map');
 
   if (!data) return null;
   const f = deriveFinances(data, today);
@@ -452,25 +454,48 @@ export function SpendScreen() {
       {/* Spend-by-place: private by design — free-text tags (vendor notes), aggregated
           on-device. No map tiles / geolocation, so the strict CSP holds. */}
       {placeRows.length > 0 && (
-        <Card title="Where you spend this month">
-          <ul className="space-y-2">
-            {placeRows.slice(0, 8).map((p) => {
-              const pct = methodTotals.totalSen > 0 ? Math.round((p.totalSen / methodTotals.totalSen) * 100) : 0;
-              return (
-                <li key={p.place}>
-                  <div className="flex items-center justify-between gap-2 text-sm">
-                    <span className="truncate text-ink-soft">
-                      📍 {p.place} <span className="text-xs text-ink-faint">×{p.count}</span>
-                    </span>
-                    <span className="tabular-nums text-ink">{formatSen(p.totalSen)}</span>
-                  </div>
-                  <div className="mt-1">
-                    <ProgressBar value={pct} tone="indigo" label={`${p.place} share`} />
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+        <Card
+          title="Spending map"
+          action={
+            <div className="flex rounded-lg bg-surface-2 p-0.5 ring-1 ring-inset ring-line" role="group" aria-label="Place view">
+              {(['map', 'list'] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  aria-pressed={placeView === v}
+                  onClick={() => setPlaceView(v)}
+                  className={`rounded-md px-2.5 py-1 text-xs font-semibold capitalize transition ${
+                    placeView === v ? 'bg-primary text-primary-contrast shadow-sm' : 'text-ink-faint hover:text-ink'
+                  }`}
+                >
+                  {v}
+                </button>
+              ))}
+            </div>
+          }
+        >
+          {placeView === 'map' ? (
+            <SpendingMap places={placeRows} monthTotalSen={methodTotals.totalSen} />
+          ) : (
+            <ul className="space-y-2">
+              {placeRows.slice(0, 8).map((p) => {
+                const pct = methodTotals.totalSen > 0 ? Math.round((p.totalSen / methodTotals.totalSen) * 100) : 0;
+                return (
+                  <li key={p.place}>
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <span className="truncate text-ink-soft">
+                        📍 {p.place} <span className="text-xs text-ink-faint">×{p.count}</span>
+                      </span>
+                      <span className="tabular-nums text-ink">{formatSen(p.totalSen)}</span>
+                    </div>
+                    <div className="mt-1">
+                      <ProgressBar value={pct} tone="indigo" label={`${p.place} share`} />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
           <p className="mt-2 text-[11px] text-ink-faint">
             Grouped from your vendor notes — name the vendor when logging and this fills itself in.
           </p>

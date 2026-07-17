@@ -324,6 +324,18 @@ export function MoneyInput({
   );
 }
 
+/* ------------------------------------------------------------ CalmAurora */
+/** The calm layer: two silk ribbons drifting slowly behind the whole screen.
+ *  Purely decorative (aria-hidden); motion stops under prefers-reduced-motion. */
+export function CalmAurora() {
+  return (
+    <div aria-hidden="true">
+      <div className="aurora aurora-a" />
+      <div className="aurora aurora-b" />
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------ Disclaimer */
 export function Disclaimer({ children }: { children: ReactNode }) {
   return (

@@ -2,7 +2,9 @@ import { useVault } from '../../state/VaultContext';
 import { deriveFinances } from '../../state/selectors';
 import { todayISO } from '../../budget/dates';
 import { formatSen } from '../../money/money';
+import { spendByPlace } from '../../budget/payments';
 import { Card, Money, ProgressBar, Stat, Disclaimer } from '../components';
+import { SpendingMap } from '../SpendingMap';
 import { Inbox } from '../Inbox';
 
 export function Dashboard({
@@ -16,7 +18,11 @@ export function Dashboard({
 }) {
   const { data } = useVault();
   if (!data) return null;
-  const f = deriveFinances(data, todayISO());
+  const today = todayISO();
+  const f = deriveFinances(data, today);
+
+  // Compact spending-map teaser: this calendar month's tagged places.
+  const placeRows = spendByPlace(data.expenses.filter((e) => e.dateISO.slice(0, 7) === today.slice(0, 7)));
 
   const leftTodayNegative = f.spending.day.leftSen < 0;
   const isCycle = (data.payPeriod?.mode ?? 'calendarMonth') !== 'calendarMonth';
@@ -123,6 +129,27 @@ export function Dashboard({
           </>
         )}
       </Card>
+
+      {placeRows.length > 0 && (
+        <Card
+          title="Spending map"
+          className="break-inside-avoid lg:mb-4"
+          action={
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                onGoToSpend();
+              }}
+              className="text-xs font-semibold text-gold hover:underline"
+            >
+              Explore →
+            </a>
+          }
+        >
+          <SpendingMap places={placeRows} monthTotalSen={f.spending.spentMonthSen} compact />
+        </Card>
+      )}
 
       <div className="break-inside-avoid space-y-3">
         <Disclaimer>

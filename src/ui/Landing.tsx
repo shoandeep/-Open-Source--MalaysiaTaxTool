@@ -4,6 +4,7 @@ import { useTheme } from './theme';
 import { ThemeToggle } from './ThemeToggle';
 import { CoinLogo } from './CoinLogo';
 import { SalaryIcon, BudgetIcon, GoalIcon, TrendIcon } from './icons';
+import { CalmAurora } from './components';
 
 const Hero3D = lazy(() => import('./Hero3D'));
 
@@ -42,6 +43,7 @@ export function Landing() {
 
   return (
     <div className="weave-bg home-bg min-h-dvh overflow-x-hidden text-ink">
+      <CalmAurora />
       <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
         <div className="flex items-center gap-2.5 font-display font-semibold tracking-tight">
           <CoinLogo size={40} detail="mark" />

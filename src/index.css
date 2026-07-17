@@ -229,6 +229,51 @@ h1, h2, h3, .font-display {
   opacity: 0.09;
 }
 
+/* ------------------------------------------------------------ CALM AURORA
+   Two softly-glowing silk ribbons drifting very slowly behind everything —
+   the "calm" layer. Gradient-edged (no blur filters, cheap on low-end phones),
+   transform-only animation, and effectively disabled under
+   prefers-reduced-motion by the global rule above. */
+.aurora {
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 9999px;
+  will-change: transform;
+}
+.aurora-a {
+  top: -22vh;
+  right: -18vw;
+  width: 66vw;
+  height: 56vh;
+  background: radial-gradient(closest-side, hsl(var(--glow-a) / 0.13), transparent 72%);
+  animation: aurora-drift-a 38s ease-in-out infinite alternate;
+}
+.aurora-b {
+  bottom: -24vh;
+  left: -16vw;
+  width: 62vw;
+  height: 60vh;
+  background: radial-gradient(closest-side, hsl(var(--glow-b) / 0.14), transparent 72%);
+  animation: aurora-drift-b 47s ease-in-out infinite alternate;
+}
+@keyframes aurora-drift-a {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-9vw, 7vh, 0) scale(1.18);
+  }
+}
+@keyframes aurora-drift-b {
+  from {
+    transform: translate3d(0, 0, 0) scale(1.05);
+  }
+  to {
+    transform: translate3d(8vw, -6vh, 0) scale(0.92);
+  }
+}
+
 /* A thin woven top-border motif for cards / the hero — the "tepi kain" edge. */
 .kain-edge {
   position: relative;

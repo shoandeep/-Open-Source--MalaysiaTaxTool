@@ -55,6 +55,17 @@ describe('formatSen', () => {
     expect(formatSen(100, { signed: true })).toBe('+RM1.00');
     expect(formatSen(0, { signed: true })).toBe('RM0.00'); // no '+' on zero
   });
+
+  it('compact mode abbreviates for chart/tile labels', () => {
+    expect(formatSen(8_750, { compact: true })).toBe('RM88'); // 87.50 -> 88
+    expect(formatSen(99_949, { compact: true })).toBe('RM999');
+    expect(formatSen(100_000, { compact: true })).toBe('RM1k');
+    expect(formatSen(123_456, { compact: true })).toBe('RM1.2k');
+    expect(formatSen(99_995_000, { compact: true })).toBe('RM1m'); // 999.95k promotes
+    expect(formatSen(123_456_789, { compact: true })).toBe('RM1.2m');
+    expect(formatSen(-123_456, { compact: true })).toBe('-RM1.2k');
+    expect(formatSen(0, { compact: true })).toBe('RM0');
+  });
 });
 
 describe('arithmetic helpers', () => {
